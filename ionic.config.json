@@ -1,7 +1,8 @@
 {
   "name": "todolist-app",
   "integrations": {
-    "capacitor": {}
+    "capacitor": {},
+    "cordova": {}
   },
   "type": "angular-standalone"
 }

@@ -1,17 +1,71 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
+    <ion-title>To-Do List</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content>
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Nueva tarea</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+
+      <form [formGroup]="taskForm" (ngSubmit)="addTask()">
+
+        <ion-item>
+          <ion-label position="floating">Título</ion-label>
+          <ion-input formControlName="title"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Descripción</ion-label>
+          <ion-textarea formControlName="description"></ion-textarea>
+        </ion-item>
+
+        <ion-item *ngIf="showCategories">
+          <ion-label>Categoría</ion-label>
+          <ion-select formControlName="categoryId">
+            <ion-select-option [value]="null">Sin categoría</ion-select-option>
+            <ion-select-option *ngFor="let c of categories" [value]="c.id">
+              {{ c.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-button expand="block" type="submit" [disabled]="taskForm.invalid">
+          Agregar
+        </ion-button>
+
+      </form>
+
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="showCategories">
+    <ion-segment [(ngModel)]="selectedCategoryId" (ionChange)="applyFilter()">
+      <ion-segment-button value="all">Todas</ion-segment-button>
+      <ion-segment-button *ngFor="let c of categories" [value]="c.id">
+        {{ c.name }}
+      </ion-segment-button>
+    </ion-segment>
+  </ion-card>
+
+  <ion-list>
+    <ion-item *ngFor="let t of filteredTasks">
+      <ion-checkbox slot="start" [checked]="t.completed"
+        (ionChange)="toggleCompleted(t)"></ion-checkbox>
+
+      <ion-label>
+        <h2 [class.done]="t.completed">{{ t.title }}</h2>
+        <p>{{ getCategoryName(t.categoryId) }}</p>
+      </ion-label>
+
+      <ion-button fill="clear" color="danger" (click)="deleteTask(t)">
+        Eliminar
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
 </ion-content>
