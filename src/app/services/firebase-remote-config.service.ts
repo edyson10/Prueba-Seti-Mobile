@@ -1,36 +1,42 @@
 import { Injectable } from '@angular/core';
-import { RemoteConfig, getRemoteConfig, getValue, fetchAndActivate } from 'firebase/remote-config';
-import { initializeApp } from 'firebase/app';
-import { environment } from '../../environments/environment';
+import {
+  getRemoteConfig,
+  fetchAndActivate,
+  getValue,
+  RemoteConfig
+} from 'firebase/remote-config';
+import { getApp } from 'firebase/app';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FirebaseRemoteConfigService {
 
-  private remoteConfig!: RemoteConfig;
+  private remoteConfig: RemoteConfig;
 
   constructor() {
-    this.init();
-  }
+    this.remoteConfig = getRemoteConfig(getApp());
 
-  private init() {
-    const app = initializeApp(environment.firebase);
-    this.remoteConfig = getRemoteConfig(app);
+    this.remoteConfig.settings = {
+      fetchTimeoutMillis: 60000,        // 60s
+      minimumFetchIntervalMillis: 0     // desarrollo
+    };
 
     this.remoteConfig.defaultConfig = {
-      show_categories: environment.featureFlags.showCategories
+      enable_categories: true
     };
   }
 
   async loadFeatureFlags(): Promise<void> {
     try {
       await fetchAndActivate(this.remoteConfig);
-    } catch {}
+      console.log('Remote Config cargado');
+    } catch (error) {
+      console.error('Error cargando Remote Config', error);
+    }
   }
 
   getShowCategoriesFlag(): boolean {
-    const value = getValue(this.remoteConfig, 'show_categories');
-    return value.asBoolean();
+    return getValue(this.remoteConfig, 'enable_categories').asBoolean();
   }
 }

@@ -18,15 +18,22 @@ import {
   IonSelect,
   IonSelectOption,
   IonSegment,
-  IonSegmentButton
+  IonSegmentButton,
 } from '@ionic/angular/standalone';
 import { ExploreContainerComponent } from '../explore-container/explore-container.component';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Category } from '../models/category.model';
 import { CategoryService } from '../services/category.service';
 import { TaskService } from '../services/task.service';
 import { FirebaseRemoteConfigService } from '../services/firebase-remote-config.service';
 import { TodoTask } from '../models/todo-task.model';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-tab1',
@@ -34,6 +41,7 @@ import { TodoTask } from '../models/todo-task.model';
   styleUrls: ['tab1.page.scss'],
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     IonHeader,
@@ -55,10 +63,10 @@ import { TodoTask } from '../models/todo-task.model';
     IonSelectOption,
     IonSegment,
     IonSegmentButton,
-    ExploreContainerComponent],
+    ExploreContainerComponent,
+  ],
 })
 export class Tab1Page implements OnInit {
-
   taskForm!: FormGroup;
   tasks: TodoTask[] = [];
   filteredTasks: TodoTask[] = [];
@@ -78,13 +86,16 @@ export class Tab1Page implements OnInit {
     this.taskForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
-      categoryId: [null]
+      categoryId: [null],
     });
 
     await this.remoteConfig.loadFeatureFlags();
     this.showCategories = this.remoteConfig.getShowCategoriesFlag();
-
-    await this.loadData();
+    this.tasks = await this.taskService.getAll();
+    this.categoryService.categories$.subscribe((categories) => {
+      this.categories = categories;
+      this.applyFilter();
+    });
   }
 
   async loadData() {
@@ -97,20 +108,25 @@ export class Tab1Page implements OnInit {
 
   async addTask() {
     if (this.taskForm.invalid) return;
-
     const { title, description, categoryId } = this.taskForm.value;
-    await this.taskService.add(title, description, categoryId);
+    const newTask = await this.taskService.add(title, description, categoryId);
+    this.tasks = [...this.tasks, newTask];
     this.taskForm.reset();
     this.applyFilter();
   }
 
   async toggleCompleted(task: TodoTask) {
     await this.taskService.toggleCompleted(task.id);
+    this.tasks = this.tasks.map((t) =>
+      t.id === task.id ? { ...t, completed: !t.completed } : t
+    );
+
     this.applyFilter();
   }
 
   async deleteTask(task: TodoTask) {
     await this.taskService.delete(task.id);
+    this.tasks = this.tasks.filter((t) => t.id !== task.id);
     this.applyFilter();
   }
 
@@ -119,13 +135,13 @@ export class Tab1Page implements OnInit {
       this.filteredTasks = [...this.tasks];
     } else {
       this.filteredTasks = this.tasks.filter(
-        t => t.categoryId === this.selectedCategoryId
+        (t) => t.categoryId === this.selectedCategoryId
       );
     }
   }
 
   getCategoryName(id?: string | null): string {
-    const cat = this.categories.find(c => c.id === id);
+    const cat = this.categories.find((c) => c.id === id);
     return cat ? cat.name : 'Sin categoría';
   }
 }
