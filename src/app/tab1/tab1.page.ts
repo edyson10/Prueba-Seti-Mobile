@@ -1,4 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+} from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -34,6 +39,7 @@ import { TaskService } from '../services/task.service';
 import { FirebaseRemoteConfigService } from '../services/firebase-remote-config.service';
 import { TodoTask } from '../models/todo-task.model';
 import { CommonModule } from '@angular/common';
+import { interval, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-tab1',
@@ -65,6 +71,7 @@ import { CommonModule } from '@angular/common';
     IonSegmentButton,
     ExploreContainerComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Tab1Page implements OnInit {
   taskForm!: FormGroup;
@@ -75,11 +82,15 @@ export class Tab1Page implements OnInit {
   selectedCategoryId: string | 'all' = 'all';
   showCategories = true;
 
+  private pollingSub?: Subscription;
+  private categorySub?: Subscription;
+
   constructor(
     private fb: FormBuilder,
     private taskService: TaskService,
     private categoryService: CategoryService,
-    private remoteConfig: FirebaseRemoteConfigService
+    private remoteConfig: FirebaseRemoteConfigService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
@@ -91,10 +102,35 @@ export class Tab1Page implements OnInit {
 
     await this.remoteConfig.loadFeatureFlags();
     this.showCategories = this.remoteConfig.getShowCategoriesFlag();
+
     this.tasks = await this.taskService.getAll();
-    this.categoryService.categories$.subscribe((categories) => {
-      this.categories = categories;
-      this.applyFilter();
+    this.applyFilter();
+
+    if (this.showCategories) {
+      this.categorySub = this.categoryService.categories$.subscribe(
+        (categories) => {
+          this.categories = categories;
+          this.applyFilter();
+          this.cdr.markForCheck();
+        }
+      );
+    }
+
+    this.pollingSub = interval(5000).subscribe(async () => {
+      const changed = await this.remoteConfig.refreshFlagsIfChanged();
+
+      if (changed) {
+        this.showCategories = this.remoteConfig.getShowCategoriesFlag();
+
+        if (this.showCategories && !this.categorySub) {
+          this.categorySub = this.categoryService.categories$.subscribe(
+            (categories) => (this.categories = categories)
+          );
+        }
+
+        this.applyFilter();
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -143,5 +179,9 @@ export class Tab1Page implements OnInit {
   getCategoryName(id?: string | null): string {
     const cat = this.categories.find((c) => c.id === id);
     return cat ? cat.name : 'Sin categoría';
+  }
+
+  trackByTaskId(_: number, task: TodoTask) {
+    return task.id;
   }
 }

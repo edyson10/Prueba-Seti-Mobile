@@ -1,4 +1,35 @@
-.done {
+.page-padding {
+  padding: 12px;
+}
+
+.form-card,
+.filter-card {
+  margin-bottom: 16px;
+}
+
+.primary-btn {
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+.task-list ion-item {
+  --inner-padding-end: 8px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.task-list ion-item.completed h2 {
   text-decoration: line-through;
   opacity: 0.6;
+}
+
+.category-label {
+  font-size: 0.8rem;
+  color: var(--ion-color-primary);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--ion-color-medium);
+  padding: 16px 0;
 }

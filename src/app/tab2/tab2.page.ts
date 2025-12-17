@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -48,6 +48,7 @@ import { CommonModule } from '@angular/common';
     IonList,
     ExploreContainerComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Tab2Page implements OnInit {
   form!: FormGroup;

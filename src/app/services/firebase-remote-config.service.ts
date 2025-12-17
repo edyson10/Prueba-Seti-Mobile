@@ -3,27 +3,28 @@ import {
   getRemoteConfig,
   fetchAndActivate,
   getValue,
-  RemoteConfig
+  RemoteConfig,
 } from 'firebase/remote-config';
 import { getApp } from 'firebase/app';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FirebaseRemoteConfigService {
-
   private remoteConfig: RemoteConfig;
+
+  private lastFlagValue?: boolean;
 
   constructor() {
     this.remoteConfig = getRemoteConfig(getApp());
 
     this.remoteConfig.settings = {
-      fetchTimeoutMillis: 60000,        // 60s
-      minimumFetchIntervalMillis: 0     // desarrollo
+      fetchTimeoutMillis: 60000,
+      minimumFetchIntervalMillis: 0,
     };
 
     this.remoteConfig.defaultConfig = {
-      enable_categories: true
+      enable_categories: true,
     };
   }
 
@@ -38,5 +39,17 @@ export class FirebaseRemoteConfigService {
 
   getShowCategoriesFlag(): boolean {
     return getValue(this.remoteConfig, 'enable_categories').asBoolean();
+  }
+
+  async refreshFlagsIfChanged(): Promise<boolean> {
+    await fetchAndActivate(this.remoteConfig);
+    const current = this.getShowCategoriesFlag();
+
+    if (this.lastFlagValue !== current) {
+      this.lastFlagValue = current;
+      return true;
+    }
+
+    return false;
   }
 }

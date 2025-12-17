@@ -1,46 +1,53 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-title>Categorías</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="page-padding">
 
-  <ion-card>
+  <ion-card class="form-card">
     <ion-card-header>
-      <ion-card-title>
-        {{ editing ? 'Editar categoría' : 'Nueva categoría' }}
-      </ion-card-title>
+      <ion-card-title>Nueva categoría</ion-card-title>
     </ion-card-header>
 
     <ion-card-content>
       <form [formGroup]="form" (ngSubmit)="save()">
-        <ion-item>
+
+        <ion-item fill="outline">
           <ion-label position="floating">Nombre</ion-label>
           <ion-input formControlName="name"></ion-input>
         </ion-item>
 
-        <ion-item>
+        <ion-item fill="outline">
           <ion-label position="floating">Color</ion-label>
           <ion-input formControlName="color"></ion-input>
         </ion-item>
 
-        <ion-button expand="block" type="submit">
+        <ion-button
+          expand="block"
+          size="large"
+          class="primary-btn"
+          type="submit"
+          [disabled]="form.invalid">
           {{ editing ? 'Actualizar' : 'Crear' }}
         </ion-button>
 
-        <ion-button *ngIf="editing" expand="block" fill="outline" (click)="cancel()">
-          Cancelar
-        </ion-button>
       </form>
     </ion-card-content>
   </ion-card>
 
   <ion-list>
     <ion-item *ngFor="let c of categories">
-      <ion-label>{{ c.name }}</ion-label>
+      <ion-label>
+        <h2>{{ c.name }}</h2>
+        <p>{{ c.color || 'Sin color' }}</p>
+      </ion-label>
+
       <ion-button fill="clear" (click)="edit(c)">Editar</ion-button>
-      <ion-button fill="clear" color="danger" (click)="delete(c)">Eliminar</ion-button>
+      <ion-button fill="clear" color="danger" (click)="delete(c)">
+        Eliminar
+      </ion-button>
     </ion-item>
   </ion-list>
 

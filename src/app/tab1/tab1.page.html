@@ -1,13 +1,12 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>To-Do List</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>Lista de tareas</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="page-padding">
 
-  <!-- ================= NUEVA TAREA ================= -->
-  <ion-card>
+  <ion-card class="form-card">
     <ion-card-header>
       <ion-card-title>Nueva tarea</ion-card-title>
     </ion-card-header>
@@ -15,27 +14,21 @@
     <ion-card-content>
       <form [formGroup]="taskForm" (ngSubmit)="addTask()">
 
-        <ion-item>
+        <ion-item fill="outline">
           <ion-label position="floating">Título</ion-label>
           <ion-input formControlName="title"></ion-input>
         </ion-item>
 
-        <ion-item>
+        <ion-item fill="outline">
           <ion-label position="floating">Descripción</ion-label>
-          <ion-textarea formControlName="description"></ion-textarea>
+          <ion-textarea rows="3" formControlName="description"></ion-textarea>
         </ion-item>
 
-        <!-- 🔥 FEATURE FLAG: CATEGORÍAS -->
-        <ion-item *ngIf="showCategories">
+        <ion-item *ngIf="showCategories" fill="outline">
           <ion-label>Categoría</ion-label>
           <ion-select formControlName="categoryId">
-            <ion-select-option [value]="null">
-              Sin categoría
-            </ion-select-option>
-
-            <ion-select-option
-              *ngFor="let c of categories"
-              [value]="c.id">
+            <ion-select-option [value]="null">Sin categoría</ion-select-option>
+            <ion-select-option *ngFor="let c of categories" [value]="c.id">
               {{ c.name }}
             </ion-select-option>
           </ion-select>
@@ -43,17 +36,18 @@
 
         <ion-button
           expand="block"
+          size="large"
+          class="primary-btn"
           type="submit"
           [disabled]="taskForm.invalid">
-          Agregar
+          Agregar tarea
         </ion-button>
 
       </form>
     </ion-card-content>
   </ion-card>
 
-  <!-- ================= FILTRO POR CATEGORÍAS ================= -->
-  <ion-card *ngIf="showCategories && categories.length > 0">
+  <ion-card *ngIf="showCategories && categories.length > 0" class="filter-card">
     <ion-segment
       [(ngModel)]="selectedCategoryId"
       (ionChange)="applyFilter()">
@@ -62,18 +56,17 @@
         Todas
       </ion-segment-button>
 
-      <ion-segment-button
-        *ngFor="let c of categories"
-        [value]="c.id">
+      <ion-segment-button *ngFor="let c of categories" [value]="c.id">
         {{ c.name }}
       </ion-segment-button>
-
     </ion-segment>
   </ion-card>
 
-  <!-- ================= LISTADO DE TAREAS ================= -->
-  <ion-list>
-    <ion-item *ngFor="let t of filteredTasks">
+  <ion-list class="task-list">
+
+    <ion-item
+      *ngFor="let t of filteredTasks; trackBy: trackByTaskId"
+      [class.completed]="t.completed">
 
       <ion-checkbox
         slot="start"
@@ -82,15 +75,11 @@
       </ion-checkbox>
 
       <ion-label>
-        <h2 [class.done]="t.completed">
-          {{ t.title }}
-        </h2>
+        <h2>{{ t.title }}</h2>
 
-        <!-- 🔥 FEATURE FLAG: MOSTRAR CATEGORÍA -->
-        <p *ngIf="showCategories">
+        <p *ngIf="showCategories" class="category-label">
           {{ getCategoryName(t.categoryId) }}
         </p>
-
       </ion-label>
 
       <ion-button
@@ -101,6 +90,13 @@
       </ion-button>
 
     </ion-item>
+
+    <ion-item *ngIf="filteredTasks.length === 0">
+      <ion-label class="empty-state">
+        No hay tareas registradas
+      </ion-label>
+    </ion-item>
+
   </ion-list>
 
 </ion-content>
